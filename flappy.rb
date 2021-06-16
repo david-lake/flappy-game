@@ -9,10 +9,11 @@ class Player
     @window = window
     @x = x
     @y = y
+    @width = @height = 70
   end
 
   def update
-    @y = @y + GRAVITY unless @y == @window.height - 80
+    @y = @y + GRAVITY unless @y == @window.height - @height
     if @window.button_down?(Gosu::KbSpace)
       if @y >= 10
         @y -= 10
@@ -23,15 +24,16 @@ class Player
   end
 
   def draw
-    width = height =  80
-    Gosu.draw_rect(@x, @y, width, height, Gosu::Color.argb(0xff_ff0000))
+    Gosu.draw_rect(@x, @y, @width, @height, Gosu::Color.argb(0xff_ff0000))
   end
 end
 
 class Pillar
-  def initialize(window)
+  def initialize(window, y, height)
     @window = window
     @x = @window.width + 10
+    @y = y
+    @height = height
   end
 
   def update
@@ -40,7 +42,7 @@ class Pillar
   end
 
   def draw
-    Gosu.draw_rect(@x, 0, 60, @window.height,  Gosu::Color.argb(0xff_00ff00))
+    Gosu.draw_rect(@x, @y, 60, @height, Gosu::Color.argb(0xff_00ff00))
   end
 
   def done?
@@ -52,7 +54,7 @@ class GameWindow < Gosu::Window
   def initialize(width=500, height=600, fullscreen=false)
     super
     self.caption = "Base gosu game"
-    @player = Player.new(self, 60, 50)
+    @player = Player.new(self, 70, 50)
     @pillars = []
     @button_down = 0
   end
@@ -60,7 +62,13 @@ class GameWindow < Gosu::Window
   def update
     @pillars.map(&:update)
     @pillars.reject!(&:done?)
-    @pillars.push(Pillar.new(self)) if needs_pillar?
+    if needs_pillar?
+      gap = rand(150..250)
+      pillar_total = self.height - gap
+      first_pillar = rand(50..pillar_total - 50)
+      @pillars.push(Pillar.new(self, 0, first_pillar))
+      @pillars.push(Pillar.new(self, first_pillar + gap, pillar_total - first_pillar))
+    end
     @player.update
   end
 
