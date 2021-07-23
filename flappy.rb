@@ -58,13 +58,7 @@ class GameWindow < Gosu::Window
   def update
     @pillars.map(&:update)
     @pillars.reject!(&:done?)
-    if needs_pillar?
-      gap = rand(150..250)
-      pillar_total = self.height - gap
-      first_pillar = rand(50..pillar_total - 50)
-      @pillars.push(Pillar.new(self, 0, first_pillar))
-      @pillars.push(Pillar.new(self, first_pillar + gap, pillar_total - first_pillar))
-    end
+    add_pillar if needs_pillar?
     @player.update
   end
 
@@ -86,6 +80,14 @@ class GameWindow < Gosu::Window
     if (now - @last_pillar) > 2500
       @last_pillar = now
     end
+  end
+
+  def add_pillar
+    gap = rand(150..250)
+    pillar_total = self.height - gap
+    first_pillar = rand(50..pillar_total - 50)
+    @pillars.push(Pillar.new(self, 0, first_pillar))
+    @pillars.push(Pillar.new(self, first_pillar + gap, pillar_total - first_pillar))
   end
 end
 
