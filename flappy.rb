@@ -16,11 +16,7 @@ class Player
   def update
     @y = @y + GRAVITY unless @y == @window.height - @height
     if @window.button_down?(Gosu::KbSpace)
-      if @y >= JUMP
-        @y -= JUMP
-      else
-        @y -= @y
-      end
+      @y >= JUMP ? @y -= JUMP : @y -= @y
     end
   end
 
@@ -54,7 +50,7 @@ end
 class GameWindow < Gosu::Window
   def initialize(width=500, height=600, fullscreen=false)
     super
-    self.caption = "Base gosu game"
+    self.caption = "Flappy"
     @player = Player.new(self, 70, 50)
     @pillars = []
   end
