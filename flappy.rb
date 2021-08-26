@@ -1,10 +1,12 @@
-# Base code for any gosu game
+# Flappy bird style game
 
 require "gosu"
 
 class Player
   GRAVITY = 5
   JUMP = 10
+
+  attr_reader :y, :height
 
   def initialize(window, x, y)
     @window = window
@@ -53,13 +55,17 @@ class GameWindow < Gosu::Window
     self.caption = "Flappy"
     @player = Player.new(self, 70, 50)
     @pillars = []
+    @game_over = false
   end
 
   def update
-    @pillars.map(&:update)
-    @pillars.reject!(&:done?)
-    add_pillar if needs_pillar?
-    @player.update
+    check_game_over
+    unless @game_over
+      @pillars.map(&:update)
+      @pillars.reject!(&:done?)
+      add_pillar if needs_pillar?
+      @player.update
+    end
   end
 
   def button_down(id)
@@ -67,9 +73,13 @@ class GameWindow < Gosu::Window
   end
 
   def draw
-    @screen_ready ||= true
-    @player.draw
-    @pillars.map(&:draw)
+    if @game_over
+      message = Gosu::Image.from_text(self, "Game Over", Gosu.default_font_name, 40)
+      message.draw(150, 200, 0)
+    else
+      @player.draw
+      @pillars.map(&:draw)
+    end
   end
 
   private
@@ -88,6 +98,10 @@ class GameWindow < Gosu::Window
     first_pillar = rand(50..pillar_total - 50)
     @pillars.push(Pillar.new(self, 0, first_pillar))
     @pillars.push(Pillar.new(self, first_pillar + gap, pillar_total - first_pillar))
+  end
+
+  def check_game_over
+    if @player.y + @player.height == self.height then @game_over = true end
   end
 end
 
