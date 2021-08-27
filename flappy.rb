@@ -59,13 +59,10 @@ class GameWindow < Gosu::Window
   end
 
   def update
-    unless @game_over
-      check_game_over
-      @pillars.map(&:update)
-      @pillars.reject!(&:done?)
-      add_pillar if needs_pillar?
-      @player.update
-    end
+    @pillars.map(&:update)
+    @pillars.reject!(&:done?)
+    add_pillar if needs_pillar?
+    @player.update
   end
 
   def button_down(id)
@@ -73,12 +70,17 @@ class GameWindow < Gosu::Window
     reset if @game_over && id == Gosu::KbSpace
   end
 
+  def needs_redraw?
+    !@game_over
+  end
+
   def draw
-    if @game_over
+    if game_over?
       message = Gosu::Image.from_text(self, "Game Over", Gosu.default_font_name, 40)
       message.draw(150, 200, 0)
       message = Gosu::Image.from_text(self, "Press space bar to restart", Gosu.default_font_name, 20)
       message.draw(140, 300, 0)
+      @game_over = true
     else
       @player.draw
       @pillars.map(&:draw)
@@ -103,8 +105,8 @@ class GameWindow < Gosu::Window
     @pillars.push(Pillar.new(self, first_pillar + gap, pillar_total - first_pillar))
   end
 
-  def check_game_over
-    if @player.y + @player.height == self.height then @game_over = true end
+  def game_over?
+    @player.y + @player.height == self.height
   end
 
   def reset
