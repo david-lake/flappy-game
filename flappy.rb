@@ -6,7 +6,7 @@ class Player
   GRAVITY = 5
   JUMP = 10
 
-  attr_reader :y, :height
+  attr_reader :x, :y, :height, :width
 
   def initialize(window, x, y)
     @window = window
@@ -28,11 +28,14 @@ class Player
 end
 
 class Pillar
+  attr_reader :x, :y, :height, :width
+
   def initialize(window, y, height)
     @window = window
     @x = @window.width + 10
     @y = y
     @height = height
+    @width = 60
   end
 
   def update
@@ -41,11 +44,11 @@ class Pillar
   end
 
   def draw
-    Gosu.draw_rect(@x, @y, 60, @height, Gosu::Color.argb(0xff_00ff00))
+    Gosu.draw_rect(@x, @y, @width, @height, Gosu::Color.argb(0xff_00ff00))
   end
 
   def done?
-    @done ||= @x < -60
+    @done ||= @x < -@width
   end
 end
 
@@ -78,8 +81,12 @@ class GameWindow < Gosu::Window
     if game_over?
       message = Gosu::Image.from_text(self, "Game Over", Gosu.default_font_name, 40)
       message.draw(150, 200, 0)
-      message = Gosu::Image.from_text(self, "Press space bar to restart", Gosu.default_font_name, 20)
-      message.draw(140, 300, 0)
+      y = 300
+      @pillars.each do |pillar|
+        message = Gosu::Image.from_text(self, "[#{pillar.x},#{pillar.y}]", Gosu.default_font_name, 20)
+        message.draw(140, y, 0)
+        y += 20
+      end
       @game_over = true
     else
       @player.draw
@@ -106,7 +113,22 @@ class GameWindow < Gosu::Window
   end
 
   def game_over?
-    @player.y + @player.height == self.height
+    # true if player touches the bottom of screen
+    return true if @player.y + @player.height == self.height
+    if @pillars.any?
+      # true if player has collided with any pillars
+      @pillars.each do |pillar|
+        return true if (@player.x.between?(pillar.x, pillar.x + pillar.width)) &&
+                       (@player.y.between?(pillar.y, pillar.y + pillar.height))
+        return true if ((@player.x + @player.width).between?(pillar.x, pillar.x + pillar.width)) &&
+                       (@player.y.between?(pillar.y, pillar.y + pillar.height))
+        return true if (@player.x.between?(pillar.x, pillar.x + pillar.width)) &&
+                       ((@player.y + @player.height).between?(pillar.y, pillar.y + pillar.height))
+        return true if ((@player.x + @player.width).between?(pillar.x, pillar.x + pillar.width)) &&
+                       ((@player.y + @player.height).between?(pillar.y, pillar.y + pillar.height))
+      end
+    end
+    return false
   end
 
   def reset
