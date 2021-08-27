@@ -8,11 +8,11 @@ class Player
 
   attr_reader :x, :y, :height, :width
 
-  def initialize(window, x, y)
+  def initialize(window)
     @window = window
-    @x = x
-    @y = y
-    @width = @height = 70
+    @x = 70
+    @y = 50
+    @width = @height = 65
   end
 
   def update
@@ -35,7 +35,7 @@ class Pillar
     @x = @window.width + 10
     @y = y
     @height = height
-    @width = 60
+    @width = 80
   end
 
   def update
@@ -56,9 +56,10 @@ class GameWindow < Gosu::Window
   def initialize(width=500, height=600, fullscreen=false)
     super
     self.caption = "Flappy"
-    @player = Player.new(self, 70, 50)
+    @player = Player.new(self)
     @pillars = []
     @game_over = false
+    @score = 0
   end
 
   def update
@@ -67,6 +68,7 @@ class GameWindow < Gosu::Window
       @pillars.reject!(&:done?)
       add_pillar if needs_pillar?
       @player.update
+      update_score
     end
   end
 
@@ -84,6 +86,8 @@ class GameWindow < Gosu::Window
     else
       @player.draw
       @pillars.map(&:draw)
+      message = Gosu::Image.from_text(self, "#{@score}", Gosu.default_font_name, 35)
+      message.draw(self.width - 50, 20, 0)
     end
     @game_over = game_over?
   end
@@ -126,9 +130,16 @@ class GameWindow < Gosu::Window
   end
 
   def reset
-    @player = Player.new(self, 70, 50)
+    @player = Player.new(self)
     @pillars = []
     @game_over = false
+    @score = 0
+  end
+
+  def update_score
+    if @pillars.any?
+      @score += 1 if @player.x == @pillars.first.x + @pillars.first.width + 5
+    end
   end
 end
 
