@@ -17,7 +17,7 @@ class Player
 
   def update
     @y = @y + GRAVITY unless @y == @window.height - @height
-    if @window.button_down?(Gosu::KbSpace)
+    if @window.button_down?(Gosu::KbUp)
       @y >= JUMP ? @y -= JUMP : @y -= @y
     end
   end
@@ -62,10 +62,12 @@ class GameWindow < Gosu::Window
   end
 
   def update
-    @pillars.map(&:update)
-    @pillars.reject!(&:done?)
-    add_pillar if needs_pillar?
-    @player.update
+    unless @game_over
+      @pillars.map(&:update)
+      @pillars.reject!(&:done?)
+      add_pillar if needs_pillar?
+      @player.update
+    end
   end
 
   def button_down(id)
@@ -73,25 +75,17 @@ class GameWindow < Gosu::Window
     reset if @game_over && id == Gosu::KbSpace
   end
 
-  def needs_redraw?
-    !@game_over
-  end
-
   def draw
-    if game_over?
+    if @game_over
       message = Gosu::Image.from_text(self, "Game Over", Gosu.default_font_name, 40)
       message.draw(150, 200, 0)
-      y = 300
-      @pillars.each do |pillar|
-        message = Gosu::Image.from_text(self, "[#{pillar.x},#{pillar.y}]", Gosu.default_font_name, 20)
-        message.draw(140, y, 0)
-        y += 20
-      end
-      @game_over = true
+      message = Gosu::Image.from_text(self, "Press space bar to restart", Gosu.default_font_name, 20)
+      message.draw(140, 300, 0)
     else
       @player.draw
       @pillars.map(&:draw)
     end
+    @game_over = game_over?
   end
 
   private
@@ -99,7 +93,7 @@ class GameWindow < Gosu::Window
   def needs_pillar?
     now = Gosu.milliseconds
     @last_pillar ||= now
-    if (now - @last_pillar) > 2500
+    if (now - @last_pillar) > 2000
       @last_pillar = now
     end
   end
